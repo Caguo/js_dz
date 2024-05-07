@@ -1,0 +1,10 @@
+let firstNumber = +prompt( "Введіть перше число" );
+let secondNumber = +prompt( "Введіть друге число" );
+const plus = firstNumber + secondNumber;
+const minus = firstNumber - secondNumber;
+const mnojennya = firstNumber * secondNumber;
+const dilennya = firstNumber / secondNumber;
+alert("Додавання: "+ plus);
+alert("Віднімання: "+ minus); 
+alert("Множення: "+ mnojennya); 
+alert("Ділення: "+ dilennya);
