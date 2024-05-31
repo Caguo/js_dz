@@ -41,8 +41,9 @@ console.log(resultBeer) //"Було жарко. Василь пив чай уп�
 // String: no tag
 
 let strTag = "якийсь текст, в якому є один тег <br /> і всяке інше"
-let findTag = strTag.indexOf("<br />");
-let resultTag = strTag.slice(0, findTag) + strTag.slice(findTag + 7);
+const tagName = '<br /> '
+let findTag = strTag.indexOf(tagName); 
+let resultTag = strTag.slice(0, findTag) + strTag.slice(findTag + tagName.length);
 console.log(resultTag) //якийсь текст, в якому є один тег і всяке інше
 
 // String: big tag
@@ -55,6 +56,6 @@ console.log(resultBigTag) //якийсь текст, в якому є один �
 // String: new line
 
 let lineText = prompt("Введіть текст");
-let sliceLineText = lineText.split('\n');
+let sliceLineText = lineText.split('\\n');
 let resultLineText = sliceLineText.join('\n');
 alert(resultLineText);

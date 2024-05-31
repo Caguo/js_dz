@@ -38,7 +38,11 @@ alert('Ваша сумма у гривнях = ' + resultRate + ' грн.');
 
 // Number: RGB
 
-let redNumber = prompt('Введіть число червоного кольору');
-let greenNumber = prompt('Введіть число зеленого кольору');
-let blueNumber = prompt('Введіть число синього кольору');
-alert ('CSS колір = #' + redNumber + greenNumber + blueNumber);
+let redNumber = +prompt('Введіть число червоного кольору');
+let greenNumber = +prompt('Введіть число зеленого кольору');
+let blueNumber = +prompt('Введіть число синього кольору');
+
+let redHex = redNumber.toString(16).padStart(2,0);
+let greenHex = redNumber.toString(16).padStart(2,0);
+let blueHex = redNumber.toString(16).padStart(2,0);
+alert ('CSS колір = #' + redHex + greenHex + blueHex);
