@@ -205,3 +205,86 @@ const catCopy = {
    color: "Белый",
    weight: 3.5
 }
+
+// Currency real rate
+
+fetch('https://open.er-api.com/v6/latest/USD').then(res => res.json())
+    .then(data => {
+        const fromCurrency = prompt("Введіть вихідну валюту:").toUpperCase();
+        const toCurrency = prompt("Введіть валюту, в яку відбувається конвертація:").toUpperCase();
+        const buyCost = parseFloat(prompt("Введіть суму у вихідній валюті:"));
+
+        if (!data.rates[fromCurrency] || !data.rates[toCurrency]) {
+            console.log("Невідома валюта.");
+            document.write("Невідома валюта.");
+            return;
+        }
+        const convertedAmount = (buyCost / data.rates[fromCurrency]) * data.rates[toCurrency];
+        const result = convertedAmount.toFixed(2);
+
+        console.log(`Результат конвертації: ${buyCost} ${fromCurrency} = ${result} ${toCurrency}`);
+    })
+
+// Currency drop down
+
+fetch('https://open.er-api.com/v6/latest/USD').then(res => res.json())
+    .then(data => {
+        const currencies = Object.keys(data.rates);
+
+        const dropdown = document.createElement('select');
+        dropdown.id = 'currencyDropdown';
+
+        currencies.forEach(currency => {
+            const option = document.createElement('option');
+            option.value = currency;
+            option.textContent = currency;
+            dropdown.appendChild(option);
+        });
+
+        document.body.appendChild(dropdown);
+
+        dropdown.addEventListener('change', () => {
+            const selectedCurrency = dropdown.value;
+            console.log(`Вибрана валюта: ${selectedCurrency}`);
+        });
+    })
+
+// Currency table
+
+fetch('https://open.er-api.com/v6/latest/USD').then(res => res.json())
+    .then(data => {
+        const currencies = Object.keys(data.rates);
+        const ratesTable = document.createElement('table');
+        const headerRow = document.createElement('tr');
+
+        const emptyHeader = document.createElement('th');
+        headerRow.appendChild(emptyHeader);
+        currencies.forEach(currency => {
+            const currencyHeader = document.createElement('th');
+            currencyHeader.textContent = currency;
+            headerRow.appendChild(currencyHeader);
+        });
+        ratesTable.appendChild(headerRow);
+
+        currencies.forEach(currency1 => {
+            const row = document.createElement('tr');
+            const currency1Header = document.createElement('th');
+            currency1Header.textContent = currency1;
+            row.appendChild(currency1Header);
+
+            currencies.forEach(currency2 => {
+                const cell = document.createElement('td');
+                if (currency1 === currency2) {
+                    cell.textContent = '1.00';
+                } else {
+                    const rate = (1 / data.rates[currency1]) * data.rates[currency2];
+                    cell.textContent = rate.toFixed(2);
+                }
+                row.appendChild(cell);
+            });
+
+            ratesTable.appendChild(row);
+        });
+
+        document.body.appendChild(ratesTable);
+    })

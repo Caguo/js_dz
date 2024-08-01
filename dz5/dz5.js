@@ -219,6 +219,28 @@ for (const currency of currencies){ //цикл створює рядки
 str+= "</table>"
 document.write(str) //document.write відобразить ваш HTML на сторінці
 
+// For Multiply Table
+
+const table = document.createElement('table');
+
+for (let i = 0; i <= 4; i++) {
+    const tr = document.createElement('tr');
+
+    tr.style.backgroundColor = i % 2 === 0 ? 'lightgray' : 'white';
+
+    for (let j = 0; j <= 4; j++) {
+        const td = document.createElement('td');
+        td.textContent = i * j;
+        tr.appendChild(td);
+    }
+    
+    table.appendChild(tr);
+}
+
+document.body.appendChild(table);
+
+
+
 // Function Capitalize
 
 const capitalize = str => {
@@ -227,3 +249,20 @@ const capitalize = str => {
 }
 console.log(capitalize("cANBerRa")) //Canberra
 
+// Map Capitalize
+
+const yourInput = prompt("Введіть рядок:");
+const mapCapitalize = (word) => word[0].toUpperCase() + word.slice(1).toLowerCase();
+
+const mapCapitalizedString = yourInput.split(' ').map(mapCapitalize).join(' ');
+
+console.log(mapCapitalizedString);
+
+// Filter Lexics
+
+const badWords = ["чих", "пык", "атата"];
+const yourLexInput = prompt("Введіть рядок:").split(' ');
+const filteredWords = yourLexInput.filter(userInput => !badWords.includes(userInput.toLowerCase()));
+const filteredString = filteredWords.join(' ');
+
+console.log(filteredString);

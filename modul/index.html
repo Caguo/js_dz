@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>GQL</title>
+    <meta charset='utf8' />
+    <style>
+        #mainContainer {
+            display: flex;
+        }
+        #aside {
+            width: 30%;
+        }
+        #aside > a {
+            display: block;
+        }
+        header {
+            min-height: 100px;
+            background-color: #AAA;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        img {
+            max-width: 250px;
+            max-height: 250px;
+        }
+        .button-cart {
+            width: 150px;
+            height: 30px;
+        }
+        .cart-icon {
+            width: 100px;
+            height: 100px;
+        }
+        .cart-counter {
+            font-size: 16px;
+            color: black;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: white;
+            border-radius: 90%;
+            padding: 2px 6px;
+        }
+        #cartIcon {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div id='cartIcon'>
+            <a href="#/cart">
+                <img class="cart-icon" src="/js_dz/modul/img/cart-icon.png" alt="Cart">
+            </a>
+            <span id="cartCounter" class="cart-counter" style="display: none;"></span>
+        </div>
+        <div>
+            <a href="#/orderHistory">История заказов</a>
+            <a href="#/login" id="loginLink">Войти</a>
+            <a href="#/register" id="registerLink">Регистрация</a>
+            <span id="welcomeMessage" style="display: none;"></span>
+            <button id="logoutButton" style="display: none;" onclick="logout()">Выйти</button>
+        </div>
+    </header>    
+    <div id='mainContainer'>
+        <aside id='aside'>
+            Категории
+            Сюда надо воткнуть список корневых категорий интернет-магазина
+        </aside>
+        <main id='main'>
+            Контент
+        </main>
+    </div>
+    <script src='index.js'></script>
+</body>
+</html>
