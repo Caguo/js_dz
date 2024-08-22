@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Divide Numbers</title>
+</head>
+<body>
+    <input type='number' id="firstNumber" placeholder="Введите первое число" />
+    <input type='number' id="secondNumber" placeholder="Введите второе число" />
+    <div id="divisionResult">
+        Текст у <code>div</code> змінено за допомогою <strong>Javascript</strong>
+    </div>
+
+    <script>
+        const calcResult = () => {
+            const firstNumberValue = parseFloat(firstNumber.value);
+            const secondNumberValue = parseFloat(secondNumber.value);
+            
+            if (isNaN(firstNumberValue) || isNaN(secondNumberValue)) {
+                divisionResult.innerHTML = "Будь ласка, введіть числові значення у обидва поля.";
+                return;
+            }
+
+            if (secondNumberValue === 0) {
+                divisionResult.innerHTML = "На нуль ділити не можна.";
+                return;
+            }
+
+            const result = firstNumberValue / secondNumberValue;
+
+            divisionResult.innerHTML = `Результат поділу: ${result.toFixed(2)}`;
+        }
+
+        firstNumber.oninput = secondNumber.oninput = calcResult;
+    </script>
+</body>
+</html>

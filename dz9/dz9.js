@@ -59,12 +59,9 @@ alert("Кількість ітерацій: " + iterations);
 
 // empty loop
 
-while (true) {
-   if (!prompt("Натисніть 'OK', щоб продовжити, або 'Скасувати', щоб завершити цикл.")) {
-       continue;
-   }
-   break;
+while (prompt("Натисніть 'OK', щоб продовжити, або 'Скасувати', щоб завершити цикл.")) {
 }
+
 
 // progression sum
 
@@ -155,3 +152,63 @@ for (let i = 0; i <= rows; i++) {
 
 console.log(multiplyTable);
 
+// read array of objects
+
+function readArrayOfObjects() {
+  const objectsArray = [];
+
+  while (true) {
+      let obj = {};
+      while (true) {
+          let key = prompt('Введите ключ (или нажмите Отмена для завершения ввода этого объекта)');
+          if (key === null) break; 
+          let value = prompt(`Введите значение для ключа "${key}"`);
+          if (value !== null) {
+              obj[key] = value; 
+          }
+      }
+
+      objectsArray.push(obj); 
+
+      if (!confirm('Хотите продолжить добавление новых объектов?')) {
+          break; 
+      }
+  }
+
+  return objectsArray;
+}
+
+const result = readArrayOfObjects();
+console.log(result);
+
+// Ромбік
+
+function createRomb(size) {
+  let Romb = '';
+
+  for (let i = 0; i < size; i++) {
+      Romb += ' '.repeat(size - i - 1);
+      Romb += '#'.repeat(2 * i + 1);
+      Romb += ' '.repeat(size - i - 1);
+      Romb += '\n';
+  }
+
+  for (let i = size - 2; i >= 0; i--) {
+      Romb += ' '.repeat(size - i - 1);
+      Romb += '#'.repeat(2 * i + 1);
+      Romb += ' '.repeat(size - i - 1);
+      Romb += '\n';
+  }
+
+  return Romb;
+}
+
+
+const size = 7; 
+console.log(createRomb(size));
+
+// DOM: multiply table in html file
+
+// DOM: highlight cell in html file
+
+// DOM: Highlight cross in html file

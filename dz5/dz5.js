@@ -266,3 +266,72 @@ const filteredWords = yourLexInput.filter(userInput => !badWords.includes(userIn
 const filteredString = filteredWords.join(' ');
 
 console.log(filteredString);
+
+// Beep Lexics
+
+function beepLexics(input) {
+   const forbiddenWords = ["чих", "биб", "боб"]; 
+   return input.split(' ')
+               .map(word => forbiddenWords.includes(word) ? "BEEP" : word)
+               .join(' ');
+}
+
+// Пример использования:
+const inputString = "Иду прямо чих влево биб пауза.";
+const result = beepLexics(inputString);
+console.log(result); 
+
+// Reduce HTML
+
+const currencies = ["USD", "EUR", "GBP", "UAH"];
+let str = "<select>";
+
+str += currencies.reduce((acc, currency) => 
+    acc + `<option value="${currency}">${currency}</option>`, "");
+
+str += "</select>";
+
+document.write(str);
+
+// For Brackets Hell Check
+
+function checkBrackets(line) {
+   const bracketsStack = [];
+   const matchingBrackets = {
+       ')': '(',
+       ']': '[',
+       '}': '{'
+   };
+
+   for (let i = 0; i < line.length; i++) {
+       const character = line[i];
+
+       if (!['(', ')', '[', ']', '{', '}'].includes(character)) {
+           continue;
+       }
+
+       if (['(', '[', '{'].includes(character)) {
+           bracketsStack.push({ char: character, index: i });
+       } else {
+           if (bracketsStack.length === 0) {
+               return `Ошибка: лишняя закрывающая скобка '${character}' на позиции ${i}`;
+           }
+           const lastBracket = bracketsStack.pop();
+           if (lastBracket.char !== matchingBrackets[character]) {
+               return `Ошибка: неверная пара скобок '${lastBracket.char}' на позиции ${lastBracket.index} и '${character}' на позиции ${i}`;
+           }
+       }
+   }
+
+   if (bracketsStack.length > 0) {
+       const lastBracket = bracketsStack.pop();
+       return `Ошибка: незакрытая скобка '${lastBracket.char}' на позиции ${lastBracket.index}`;
+   }
+
+   return "Рядок не містить помилок!";
+}
+
+const line = prompt("Введите строку со скобками:");
+const result = checkBrackets(line);
+console.log(result);
+

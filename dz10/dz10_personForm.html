@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Person Form</title>
+</head>
+<body>
+    <div id="formContainer"></div>
+
+    <script>
+        function createPersonClosure(name, surname) {
+            let personName = name;
+            let personSurname = surname;
+            let fatherName = '';
+            let age = 0;
+
+            function getFullName() {
+                return `${personSurname} ${personName} ${fatherName}`;
+            }
+
+            function setFullName(newFullName) {
+                const parts = newFullName.split(' ');
+                if (parts.length === 3) {
+                    [personSurname, personName, fatherName] = parts;
+                }
+                return getFullName();
+            }
+
+            function getAge() {
+                return age;
+            }
+
+            function setAge(newAge) {
+                if (typeof newAge === 'number' && newAge >= 0 && newAge <= 100) {
+                    age = newAge;
+                }
+                return getAge();
+            }
+
+            return {
+                getFullName,
+                setFullName,
+                getAge,
+                setAge,
+                setName(name) { personName = name; setFullName(getFullName()); },
+                setSurname(surname) { personSurname = surname; setFullName(getFullName()); },
+                setFatherName(fatherName) { fatherName = fatherName; setFullName(getFullName()); }
+            };
+        }
+
+        function personForm(parent, person) {
+            const nameInput = document.createElement('input');
+            nameInput.placeholder = 'Ім\'я';
+
+            const surnameInput = document.createElement('input');
+            surnameInput.placeholder = 'Прізвище';
+
+            const fatherNameInput = document.createElement('input');
+            fatherNameInput.placeholder = 'По батькові';
+
+            const ageInput = document.createElement('input');
+            ageInput.type = 'number';
+            ageInput.placeholder = 'Вік';
+
+            const fullNameInput = document.createElement('input');
+            fullNameInput.placeholder = 'ПІБ';
+
+            function updateFields() {
+                fullNameInput.value = person.getFullName();
+                ageInput.value = person.getAge();
+                const [surname, name, fatherName] = person.getFullName().split(' ');
+                surnameInput.value = surname || '';
+                nameInput.value = name || '';
+                fatherNameInput.value = fatherName || '';
+            }
+
+            updateFields();
+
+            fullNameInput.addEventListener('input', function() {
+                person.setFullName(fullNameInput.value);
+                updateFields();
+            });
+
+            nameInput.addEventListener('input', function() {
+                person.setName(nameInput.value);
+                fullNameInput.value = person.getFullName();
+            });
+
+            surnameInput.addEventListener('input', function() {
+                person.setSurname(surnameInput.value);
+                fullNameInput.value = person.getFullName();
+            });
+
+            fatherNameInput.addEventListener('input', function() {
+                person.setFatherName(fatherNameInput.value);
+                fullNameInput.value = person.getFullName();
+            });
+
+            ageInput.addEventListener('input', function() {
+                const newAge = parseInt(ageInput.value, 10);
+                if (!isNaN(newAge)) {
+                    person.setAge(newAge);
+                }
+            });
+
+            parent.appendChild(nameInput);
+            parent.appendChild(surnameInput);
+            parent.appendChild(fatherNameInput);
+            parent.appendChild(ageInput);
+            parent.appendChild(fullNameInput);
+        }
+
+        const person = createPersonClosure("Ганна", "Іванова");
+        person.setAge(15);
+        person.setFullName("Петрова Ганна Миколаївна");
+
+        const formContainer = document.getElementById('formContainer');
+        personForm(formContainer, person);
+    </script>
+</body>
+</html>

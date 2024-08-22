@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country and City Selector</title>
+</head>
+<body>
+    <select id="countries">
+        <option value="">Select Country</option>
+    </select>
+
+    <select id="cities">
+        <option value="">Select City</option>
+    </select>
+
+    <script>
+        fetch('https://raw.githubusercontent.com/russ666/all-countries-and-cities-json/master/countries.min.json')
+            .then(res => res.json())
+            .then(data => {
+                const countries = Object.keys(data);
+                const countriesSelect = document.getElementById('countries');
+                const citiesSelect = document.getElementById('cities');
+
+                countries.forEach(country => {
+                    const option = document.createElement('option');
+                    option.value = country;
+                    option.innerText = country;
+                    countriesSelect.appendChild(option);
+                });
+
+                countriesSelect.onchange = () => {
+                    const selectedCountry = countriesSelect.value;
+                    
+                    citiesSelect.innerHTML = '<option value="">Select City</option>';
+                    
+                    if (selectedCountry) {
+                        const cities = data[selectedCountry];
+                        
+                        cities.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city;
+                            option.innerText = city;
+                            citiesSelect.appendChild(option);
+                        });
+                    }
+                };
+            });
+    </script>
+</body>
+</html>

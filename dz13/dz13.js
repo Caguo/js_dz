@@ -281,3 +281,31 @@ const jsonString2 = stringify(table);
 console.log(jsonString2); // Перевірка JSON-рядка
 console.log(JSON.parse(jsonString2)); // Не повинно поламатися і повернути структуру, у всьому схожу з оригінальним table
 console.log(jsonString2 === JSON.stringify(table)); // Повинно бути true
+
+// Рекурсія: getElementById throw
+
+function getElementById(idToFind) {
+    function walker(parent) {
+        if (parent.id === idToFind) {
+            throw parent; 
+        }
+        
+        for (let child of parent.children) {
+            try {
+                walker(child); 
+            } catch (e) {
+                if (e === parent) {
+                    throw e; 
+                }
+            }
+        }
+    }
+
+    try {
+        walker(document.documentElement); 
+    } catch (e) {
+        return e; 
+    }
+
+    return null;
+}

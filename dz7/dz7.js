@@ -164,6 +164,35 @@ const displayTable = (tableData) => {
 
 displayCurrencyTable();
 
+// Form
+
+const car = {
+    "Name": "chevrolet chevelle malibu",
+    "Cylinders": 8,
+    "Displacement": 307,
+    "Horsepower": 130,
+    "Weight_in_lbs": 3504,
+    "Origin": "USA",
+    "in_production": false
+ };
+ 
+ function createForm(obj) {
+    let formHTML = "<form>";
+ 
+    for (let key in obj) {
+        let value = obj[key];
+        let inputType = typeof value === "boolean" ? "checkbox" : typeof value === "number" ? "number" : "text";
+ 
+        formHTML += `<label>${key}: <input type="${inputType}" ${inputType === "checkbox" ? (value ? "checked" : "") : `value="${value}"`}/></label><br/>`;
+    }
+ 
+    formHTML += "</form>";
+    document.write(formHTML);
+}
+ 
+createForm(car);
+ 
+
 // Array of objects sort
 
 const sort = (array, field, ascending = true) => {
@@ -202,3 +231,107 @@ console.log(persons);
 sort(persons, "name", false);
 console.log(persons);
 
+// Table
+
+const cars = [
+    {
+        "Name": "chevrolet chevelle malibu",
+        "Cylinders": 8,
+        "Displacement": 307,
+        "Horsepower": 130,
+        "Weight_in_lbs": 3504,
+        "Origin": "USA"
+    },
+    {
+        "Name": "buick skylark 320",
+        "Miles_per_Gallon": 15,
+        "Cylinders": 8,
+        "Displacement": 350,
+        "Horsepower": 165,
+        "Weight_in_lbs": 3693,
+        "Acceleration": 11.5,
+        "Year": "1970-01-01"
+    },
+    {
+        "Miles_per_Gallon": 18,
+        "Cylinders": 8,
+        "Displacement": 318,
+        "Horsepower": 150,
+        "Weight_in_lbs": 3436,
+        "Year": "1970-01-01",
+        "Origin": "USA"
+    },
+    {
+        "Name": "amc rebel sst",
+        "Miles_per_Gallon": 16,
+        "Cylinders": 8,
+        "Displacement": 304,
+        "Horsepower": 150,
+        "Year": "1970-01-01",
+        "Origin": "USA"
+    }
+ ];
+
+function createTable(data, sortBy, sortOrder) {
+    const sortedData = [...data];
+    
+    sortedData.sort((a, b) => {
+        if (a[sortBy] < b[sortBy]) return sortOrder === 'asc' ? -1 : 1;
+        if (a[sortBy] > b[sortBy]) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    const columns = new Set();
+    sortedData.forEach(item => {
+        Object.keys(item).forEach(key => columns.add(key));
+    });
+
+    let tableHTML = "<table border='1'><tr>";
+    
+    columns.forEach(column => {
+        tableHTML += `<th>${column}</th>`;
+    });
+    
+    tableHTML += "</tr>";
+
+    sortedData.forEach(item => {
+        tableHTML += "<tr>";
+        columns.forEach(column => {
+            tableHTML += `<td>${item[column] !== undefined ? item[column] : ""}</td>`;
+        });
+        tableHTML += "</tr>";
+    });
+
+    tableHTML += "</table>";
+    document.write(tableHTML);
+}
+
+createTable(cars, 'Horsepower', 'asc');  
+
+// Divide html file
+
+// Calc Func
+
+function divideNumbers(dividend, divisor) {
+    const result = {};
+
+    if (divisor === 0) {
+        result.error = "На нуль ділити не можна.";
+        return result;
+    }
+
+    // Выполняем деление
+    result.division = dividend / divisor;
+    result.quotient = result.division.toFixed(2);
+
+    return result;
+}
+
+const dividend = 10;
+const divisor = 2;
+const calculationResult = divideNumbers(dividend, divisor);
+
+console.log(calculationResult); // { division: 5, quotient: '5.00' }
+
+
+// Calc Live in html file

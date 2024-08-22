@@ -46,3 +46,18 @@ let redHex = redNumber.toString(16).padStart(2,0);
 let greenHex = redNumber.toString(16).padStart(2,0);
 let blueHex = redNumber.toString(16).padStart(2,0);
 alert ('CSS колір = #' + redHex + greenHex + blueHex);
+
+// Number: flats
+
+const floors = Number(prompt("Введите количество этажей в доме:"));
+const flatsPerFloor = Number(prompt("Введите количество квартир на этаже:"));
+const flatNumber = Number(prompt("Введите номер квартиры:"));
+
+const flatsPerEntrance = floors * flatsPerFloor;
+
+const entrance = Math.ceil(flatNumber / flatsPerEntrance);
+
+const floor = Math.ceil((flatNumber - (entrance - 1) * flatsPerEntrance) / flatsPerFloor);
+
+alert(`Квартира №${flatNumber} находится в подъезде №${entrance} на ${floor}-м этаже.`);
+

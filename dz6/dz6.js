@@ -288,3 +288,113 @@ fetch('https://open.er-api.com/v6/latest/USD').then(res => res.json())
 
         document.body.appendChild(ratesTable);
     })
+
+// Form
+
+const car = {
+   "Name": "chevrolet chevelle malibu",
+   "Cylinders": 8,
+   "Displacement": 307,
+   "Horsepower": 130,
+   "Weight_in_lbs": 3504,
+   "Origin": "USA",
+   "in_production": false
+};
+
+function createForm(obj) {
+   let formHTML = "<form>";
+
+   for (let key in obj) {
+       let value = obj[key];
+       let inputType = typeof value === "boolean" ? "checkbox" : typeof value === "number" ? "number" : "text";
+
+       formHTML += `<label>${key}: `;
+
+       if (inputType === "checkbox") {
+           formHTML += `<input type="${inputType}" ${value ? "checked" : ""}/>`;
+       } else {
+           formHTML += `<input type="${inputType}" value="${value}"/>`;
+       }
+
+       formHTML += `</label><br/>`;
+   }
+
+   formHTML += "</form>";
+   document.write(formHTML);
+}
+
+createForm(car);
+
+// Table
+
+const cars = [
+   {
+       "Name": "chevrolet chevelle malibu",
+       "Cylinders": 8,
+       "Displacement": 307,
+       "Horsepower": 130,
+       "Weight_in_lbs": 3504,
+       "Origin": "USA"
+   },
+   {
+       "Name": "buick skylark 320",
+       "Miles_per_Gallon": 15,
+       "Cylinders": 8,
+       "Displacement": 350,
+       "Horsepower": 165,
+       "Weight_in_lbs": 3693,
+       "Acceleration": 11.5,
+       "Year": "1970-01-01"
+   },
+   {
+       "Miles_per_Gallon": 18,
+       "Cylinders": 8,
+       "Displacement": 318,
+       "Horsepower": 150,
+       "Weight_in_lbs": 3436,
+       "Year": "1970-01-01",
+       "Origin": "USA"
+   },
+   {
+       "Name": "amc rebel sst",
+       "Miles_per_Gallon": 16,
+       "Cylinders": 8,
+       "Displacement": 304,
+       "Horsepower": 150,
+       "Year": "1970-01-01",
+       "Origin": "USA"
+   }
+];
+
+function createTable(data) {
+   let columns = [];
+
+   data.forEach(item => {
+       for (let key in item) {
+           if (!columns.includes(key)) {
+               columns.push(key);
+           }
+       }
+   });
+
+   let tableHTML = "<table border='1'><tr>";
+
+   columns.forEach(column => {
+       tableHTML += `<th>${column}</th>`;
+   });
+
+   tableHTML += "</tr>";
+
+   data.forEach(item => {
+       tableHTML += "<tr>";
+       columns.forEach(column => {
+           tableHTML += `<td>${item[column] !== undefined ? item[column] : ""}</td>`;
+       });
+       tableHTML += "</tr>";
+   });
+
+   tableHTML += "</table>";
+   document.write(tableHTML);
+}
+
+createTable(cars);

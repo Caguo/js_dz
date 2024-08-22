@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Client</title>
+</head>
+<body>
+    <div id="messages" style="border: 1px solid #ccc; height: 300px; overflow-y: scroll; margin-bottom: 10px; background-color: #f9f9f9;"></div>
+    <input id="nickInput" placeholder="Enter your nickname" style="margin-right: 5px;">
+    <input id="messageInput" placeholder="Enter your message" style="margin-right: 5px;">
+    <button id="sendButton">Send</button>
+
+    <script>
+        async function jsonPost(url, data) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('jsonPost failed: ', error.message);
+                throw error;
+            }
+        }
+
+        let nextMessageId = 0;
+
+        async function sendMessage(nick, message) {
+            try {
+                const result = await jsonPost("http://students.a-level.com.ua:10012", { func: 'addMessage', nick, message });
+                console.log('Message sent:', result);
+                return result;
+            } catch (error) {
+                console.error('Failed to send message:', error.message);
+            }
+        }
+
+        async function getMessages() {
+            try {
+                const response = await jsonPost("http://students.a-level.com.ua:10012", { func: 'getMessages', messageId: nextMessageId });
+                console.log('Messages received:', response);
+                if (response.data) {
+                    nextMessageId = response.nextMessageId;
+                    const messagesDiv = document.getElementById('messages');
+                    if (messagesDiv) {
+                        response.data.forEach(msg => {
+                            console.log('Adding message:', msg); // Отладочное сообщение
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = 'message';
+                            messageDiv.innerHTML = `[${new Date(msg.timestamp).toLocaleTimeString()}] <strong>${msg.nick}</strong>: ${msg.message}`;
+                            messagesDiv.appendChild(messageDiv);
+                        });
+                        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Прокрутка к последнему сообщению
+                    } else {
+                        console.error('Messages container not found');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to get messages:', error.message);
+            }
+        }
+
+        async function sendAndCheck() {
+            const nick = document.getElementById('nickInput').value;
+            const message = document.getElementById('messageInput').value;
+            if (nick && message) {
+                console.log('Sending message:', { nick, message });
+                await sendMessage(nick, message);
+                document.getElementById('messageInput').value = ''; // Очистить поле ввода
+                await getMessages();
+            } else {
+                console.warn('Nickname and message cannot be empty');
+            }
+        }
+
+        async function checkLoop() {
+            while (true) {
+                await getMessages();
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Задержка 2 секунды
+            }
+        }
+
+        document.getElementById('sendButton').addEventListener('click', sendAndCheck);
+
+        // Начать проверку новых сообщений в цикле
+        checkLoop();
+    </script>
+</body>
+</html>

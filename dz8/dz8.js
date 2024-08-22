@@ -34,7 +34,8 @@ let a = 10;
 
 // comparison if
 
-let age = + prompt ("Скільки вам років?", "");
+let age = +prompt("Скільки вам років?", "");
+
 if (age < 0)
    alert("Ви не народилися ще");
 else if (age < 18)
@@ -129,3 +130,9 @@ noSwitch(drink, {
        console.log('шото я не зрозумів');
    }
 });
+
+// closure calc in html file
+
+// closure calc 2 in html file
+
+// countries and cities in html file

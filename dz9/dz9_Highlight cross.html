@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таблиця множення</title>
+    <style>
+        th, td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: center;
+        }
+        th {
+            font-weight: bold;
+        }
+        .no-bold {
+            font-weight: normal;
+        }
+        .highlight {
+            background-color: yellow; 
+        }
+    </style>
+</head>
+<body>
+    <div id="multiplicationTable"></div>
+
+    <script>
+        function createMultiplicationTable() {
+            const tableContainer = document.getElementById('multiplicationTable');
+            const table = document.createElement('table');
+            const rows = [];
+            const cols = [];
+
+            const headerRow = document.createElement('tr');
+            const zeroHeaderCell = document.createElement('th');
+            zeroHeaderCell.classList.add('no-bold');
+            zeroHeaderCell.innerText = '0';
+            headerRow.appendChild(zeroHeaderCell);
+
+            for (let i = 1; i <= 9; i++) {
+                const th = document.createElement('th');
+                th.classList.add('no-bold');
+                th.innerText = i;
+                headerRow.appendChild(th);
+                cols.push(th); 
+            }
+            table.appendChild(headerRow);
+
+
+            for (let i = 1; i <= 9; i++) {
+                const row = document.createElement('tr');
+                rows.push(row); 
+                
+                const firstCell = document.createElement('th');
+                firstCell.classList.add('no-bold');
+                firstCell.innerText = i;
+                row.appendChild(firstCell);
+
+                for (let j = 1; j <= 9; j++) {
+                    const cell = document.createElement('td');
+                    cell.innerText = i * j;
+                    row.appendChild(cell);
+                }
+                table.appendChild(row);
+            }
+
+            tableContainer.appendChild(table);
+
+            function highlightRowAndColumn(rowIdx, colIdx) {
+                table.querySelectorAll('th, td').forEach(cell => {
+                    cell.classList.remove('highlight');
+                });
+
+                if (rowIdx >= 0) {
+                    rows[rowIdx].querySelectorAll('td, th').forEach(cell => cell.classList.add('highlight'));
+                }
+
+                if (colIdx >= 0) {
+                    table.querySelectorAll('tr').forEach((row) => {
+                        const cell = row.children[colIdx];
+                        if (cell) cell.classList.add('highlight');
+                    });
+                }
+            }
+
+            table.querySelectorAll('th, td').forEach((cell) => {
+                cell.addEventListener('mouseover', function() {
+                    let rowIdx = Array.from(this.parentElement.parentElement.children).indexOf(this.parentElement) - 1;
+                    let colIdx = Array.from(this.parentElement.children).indexOf(this);
+
+                    if (rowIdx < 0) rowIdx = 0;
+                    if (colIdx < 0) colIdx = 0;
+
+                    highlightRowAndColumn(rowIdx, colIdx);
+                });
+
+                cell.addEventListener('mouseout', function() {
+                    highlightRowAndColumn(-1, -1); 
+                });
+            });
+        }
+
+        createMultiplicationTable();
+    </script>
+</body>
+</html>

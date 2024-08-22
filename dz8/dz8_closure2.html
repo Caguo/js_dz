@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+</head>
+<body>
+    <select id='from'></select> 
+    <select id='to'></select> 
+    <div id='rate'>Курс: </div> 
+    <input type='number' id='amount' placeholder='Сума у вихідній валюті'/> 
+    <div id='result'>Результат: </div> 
+
+    <script>
+        fetch('https://open.er-api.com/v6/latest/USD')
+            .then(res => res.json())
+            .then(data => {
+                const rates = data.rates;
+                const currencies = Object.keys(rates);
+                
+                const from = document.getElementById('from');
+                const to = document.getElementById('to');
+                const rateDiv = document.getElementById('rate');
+                const resultDiv = document.getElementById('result');
+                const amountInput = document.getElementById('amount');
+
+                currencies.forEach(currency => {
+                    const fromOption = document.createElement('option');
+                    fromOption.innerText = currency;
+                    fromOption.value = currency;
+                    from.appendChild(fromOption);
+
+                    const toOption = document.createElement('option');
+                    toOption.innerText = currency;
+                    toOption.value = currency;
+                    to.appendChild(toOption);
+                });
+
+                const updateConversion = () => {
+                    const fromCurrency = from.value;
+                    const toCurrency = to.value;
+                    const amount = parseFloat(amountInput.value);
+                    
+                    if (!fromCurrency || !toCurrency || isNaN(amount)) {
+                        rateDiv.innerText = 'Курс: ';
+                        resultDiv.innerText = 'Результат: ';
+                        return;
+                    }
+
+                    const rate = rates[toCurrency] / rates[fromCurrency];
+                    const result = (amount * rate).toFixed(2);
+
+                    rateDiv.innerText = `Курс: 1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}`;
+                    resultDiv.innerText = `Результат: ${result} ${toCurrency}`;
+                };
+
+                from.onchange = updateConversion;
+                to.onchange = updateConversion;
+                amountInput.oninput = updateConversion;
+
+                updateConversion();
+            });
+    </script>
+</body>
+</html>

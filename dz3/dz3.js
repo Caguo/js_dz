@@ -59,3 +59,18 @@ let lineText = prompt("Введіть текст");
 let sliceLineText = lineText.split('\\n');
 let resultLineText = sliceLineText.join('\n');
 alert(resultLineText);
+
+// String: youtube
+
+const userInput = prompt("Введите текст с ссылкой на YouTube видео:");
+const youtubeRegex = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?=]*)?/;
+const match = userInput.match(youtubeRegex);
+const videoId = match ? match[1] : null;
+
+if (videoId) {
+    const embedHtml = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    
+    document.write(embedHtml);
+} else {
+    alert("Не удалось найти ссылку на YouTube видео.");
+}

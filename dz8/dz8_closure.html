@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+</head>
+<body>
+    <div id="buttonsContainer"></div> <!-- Контейнер для кнопок -->
+    <script>
+        fetch('https://open.er-api.com/v6/latest/USD')
+            .then(res => res.json())
+            .then(data => {
+                const rates = data.rates;
+                const buttonsContainer = document.getElementById('buttonsContainer');
+
+                for (const currency in rates) {
+                    const button = document.createElement('button');
+                    button.innerText = currency;
+
+                    button.onclick = () => {
+                        const amount = parseFloat(prompt(`Введите сумму в ${currency}:`));
+                        if (isNaN(amount)) {
+                            alert("Пожалуйста, введите корректное число.");
+                            return;
+                        }
+
+                        const rate = rates[currency];
+                        const result = (amount / rate).toFixed(2);
+
+                        alert(`Сумма ${amount} ${currency} равна ${result} USD`);
+                    };
+
+                    buttonsContainer.appendChild(button);
+                }
+            });
+    </script>
+</body>
+</html>

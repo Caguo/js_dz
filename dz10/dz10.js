@@ -54,14 +54,11 @@ console.log(result);
 
 function yPrompt() {
    const input = prompt("Введіть текст");
-   if (input) {
-      return input;
-   } else {
-      console.log("Все ясно");
-   }
+   return input || "Все ясно";
 }
 
 alert(yPrompt());
+
 
 // createPerson
 
@@ -97,7 +94,7 @@ function createPersonClosure(name, surname) {
    let age;
 
    function getFullName() {
-      return `${surname} ${name} ${fatherName || ''}`;
+      return `${surname} ${name} ${fatherName || ''}`.trim();
    }
 
    function setFullName(newFullName) {
@@ -122,11 +119,44 @@ function createPersonClosure(name, surname) {
       return getAge();
    }
 
+   function getName() {
+      return name;
+   }
+
+   function setName(newName) {
+      name = newName;
+      return getName();
+   }
+
+   function getSurname() {
+      return surname;
+   }
+
+   function setSurname(newSurname) {
+      surname = newSurname;
+      return getSurname();
+   }
+
+   function getFatherName() {
+      return fatherName;
+   }
+
+   function setFatherName(newFatherName) {
+      fatherName = newFatherName;
+      return getFatherName();
+   }
+
    return {
       getFullName,
       setFullName,
       getAge,  
-      setAge
+      setAge,
+      getName,
+      setName,
+      getSurname,
+      setSurname,
+      getFatherName,
+      setFatherName
    };
 }
 
@@ -140,6 +170,9 @@ a.setAge(150);
 console.log(a.getAge()); 
 
 b.setFullName("Петрова Ганна Миколаївна");
+console.log(b.getFullName()); 
+
+b.setName("Олена");
 console.log(b.getFullName()); 
 
 // createPersonClosureDestruct
@@ -235,3 +268,112 @@ for (let i = 1; i <= 5; i++) {
 
 console.log("Введений масив:", inputArray);
 console.log("Чи впорядкований масив?", isSorted(...inputArray));
+
+// personForm in html file
+
+// getSetForm
+
+function getSetForm(parent, getSet) {
+   const inputs = {}; 
+
+   const updateInputs = () => {
+       for (const key in inputs) {
+           const input = inputs[key];
+           const getMethod = `get${key}`;
+           if (typeof getSet[getMethod] === 'function') {
+               input.value = getSet[getMethod]();
+           }
+       }
+   };
+
+   for (const method in getSet) {
+       if (method.startsWith('get')) {
+           const fieldName = method.slice(3); 
+           const setMethod = `set${fieldName}`;
+           
+           if (!inputs[fieldName]) {
+               const input = document.createElement('input');
+               input.placeholder = fieldName;
+               input.dataset.field = fieldName;
+               input.dataset.type = fieldName === 'Age' ? 'number' : 'text';
+               parent.appendChild(input);
+               inputs[fieldName] = input;
+               
+               input.type = input.dataset.type;
+               if (typeof getSet[method] === 'function') {
+                   input.value = getSet[method]();
+               }
+               
+               input.addEventListener('input', () => {
+                   if (typeof getSet[setMethod] === 'function') {
+                       const value = input.value;
+                       const result = getSet[setMethod](value);
+                       input.value = result; 
+                       updateInputs(); 
+                   }
+               });
+               
+               if (typeof getSet[setMethod] !== 'function') {
+                   input.disabled = true;
+               }
+           }
+       }
+   }
+
+   updateInputs();
+}
+
+
+let car;
+{
+   let brand = 'BMW', model = 'X5', volume = 2.4;
+   car = {
+       getBrand() { return brand; },
+       setBrand(newBrand) { if (newBrand && typeof newBrand === 'string') { brand = newBrand; } return brand; },
+       getModel() { return model; },
+       setModel(newModel) { if (newModel && typeof newModel === 'string') { model = newModel; } return model; },
+       getVolume() { return volume; },
+       setVolume(newVolume) { newVolume = +newVolume; if (newVolume && newVolume > 0 && newVolume < 20) { volume = newVolume; } return volume; },
+       getTax() { return volume * 100; }
+   };
+}
+
+function createPersonClosure(name, surname) {
+   let personName = name;
+   let personSurname = surname;
+   let fatherName = '';
+   let age = 0;
+
+   function getFullName() {
+       return `${personSurname} ${personName} ${fatherName || ''}`;
+   }
+
+   function setFullName(newFullName) {
+       const parts = newFullName.split(' ');
+       if (parts.length === 3) {
+           [personSurname, personName, fatherName] = parts;
+       }
+       return getFullName();
+   }
+
+   function getAge() {
+       return age;
+   }
+
+   function setAge(newAge) {
+       if (typeof newAge === 'number' && newAge >= 0 && newAge <= 100) {
+           age = newAge;
+       }
+       return getAge();
+   }
+
+   return {
+       getFullName,
+       setFullName,
+       getAge,
+       setAge
+   };
+}
+
+getSetForm(document.body, car);
+getSetForm(document.body, createPersonClosure('Анон', 'Анонов'));
