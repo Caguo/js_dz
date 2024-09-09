@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { TextField, Button, Container, Typography, Box } from '@mui/material';
 import { useLoginMutation } from '../redux/authApiSlice';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../redux/authSlice';
 
 const LoginForm = () => {
   const [loginValue, setLoginValue] = useState('');
   const [passwordValue, setPasswordValue] = useState('');
   const [formError, setFormError] = useState(false);
 
+  const dispatch = useDispatch();
   const [login, { isLoading, isError, error }] = useLoginMutation();
   const navigate = useNavigate();
 
@@ -18,14 +21,12 @@ const LoginForm = () => {
     try {
       const result = await login({ login: loginValue, password: passwordValue }).unwrap();
       console.log('Login result:', result);
-  
-      const token = result?.login; // Проверьте, что это правильное поле
-      
+
+      const token = result?.login;
+      const user = result?.login.user; // Если данные пользователя не возвращаются в API, используйте это значение
+
       if (token) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('userLogin', loginValue); // Проверьте это
-        console.log('Token saved to localStorage:', token);
-        console.log('User login saved to localStorage:', loginValue);
+        dispatch(setCredentials({ token, user }));
         navigate('/main');
       } else {
         setFormError(true);

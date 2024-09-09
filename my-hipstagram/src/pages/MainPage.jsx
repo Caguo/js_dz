@@ -1,23 +1,22 @@
 import React, { useState, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Toolbar, Typography, TextField, Box, Avatar, IconButton, Popper, Paper, MenuItem, CircularProgress } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../redux/authSlice';
-import { useFetchUserInfoQuery, useSearchUsersQuery } from '../redux/userApiSlice';
+import { useSearchUsersQuery } from '../redux/userApiSlice';
 import PostCard from '../components/PostCard';
 
 const MainPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user); // Извлекаем данные пользователя
+  console.log('User data:', user);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const inputRef = useRef(null);
-
-  const userLogin = localStorage.getItem('userLogin');
-  const { data: userInfo, error, isLoading } = useFetchUserInfoQuery(userLogin);
 
   const { data: searchResults = [], isFetching } = useSearchUsersQuery(searchQuery, { skip: searchQuery.trim() === '' });
 
@@ -130,15 +129,11 @@ const MainPage = () => {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {isLoading ? (
-              <Typography variant="h6">Загрузка...</Typography>
-            ) : error || !userInfo ? (
-              <Typography variant="h6" color="error">Ошибка загрузки</Typography>
-            ) : (
+            {user ? (
               <>
                 <Avatar
-                  alt={userInfo.nick || userInfo.login}
-                  src={userInfo.avatar?.url || '/default-avatar.png'}
+                  alt={user.nick || user.login}
+                  src={user.avatar?.url || '/default-avatar.png'}
                   sx={{ cursor: 'pointer' }}
                   onClick={handleProfileClick}
                 />
@@ -147,9 +142,11 @@ const MainPage = () => {
                   sx={{ marginLeft: '11px', marginRight: '8px', cursor: 'pointer' }}
                   onClick={handleProfileClick}
                 >
-                  {userInfo.nick || userInfo.login}
+                  {user.nick || user.login}
                 </Typography>
               </>
+            ) : (
+              <Typography variant="h6" color="error">Ошибка загрузки</Typography>
             )}
             <IconButton onClick={handleLogout} color="inherit">
               <ExitToAppIcon />

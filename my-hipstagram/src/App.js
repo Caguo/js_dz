@@ -1,8 +1,8 @@
-// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { Provider, useSelector } from 'react-redux';
-import store from './redux/store'; 
+import { Provider, useSelector } from 'react-redux'; // Добавьте import useSelector здесь
+import { PersistGate } from 'redux-persist/integration/react';
+import store, { persistor } from './redux/store';
 import LoginForm from './pages/LoginForm';
 import MainPage from './pages/MainPage';
 import RegisterForm from './components/RegisterForm';
@@ -10,6 +10,7 @@ import MyProfilePage from './pages/MyProfilePage';
 import UserProfilePage from './pages/userProfilePage';
 
 const AppRoutes = () => {
+  // Получаем токен из Redux store
   const token = useSelector((state) => state.auth.token);
 
   return (
@@ -26,9 +27,11 @@ const AppRoutes = () => {
 const App = () => {
   return (
     <Provider store={store}>
-      <Router>
-        <AppRoutes />
-      </Router>
+      <PersistGate loading={null} persistor={persistor}>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </PersistGate>
     </Provider>
   );
 };
