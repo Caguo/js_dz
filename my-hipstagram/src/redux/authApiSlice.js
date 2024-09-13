@@ -1,5 +1,5 @@
-import { createApi} from '@reduxjs/toolkit/query/react';
-import { graphqlRequestBaseQuery } from '@rtk-query/graphql-request-base-query'
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { graphqlRequestBaseQuery } from '@rtk-query/graphql-request-base-query';
 
 export const authApi = createApi({
   reducerPath: 'authApi',
@@ -11,7 +11,7 @@ export const authApi = createApi({
       query: ({ login, password }) => ({
         document: `
           query login($login: String!, $password: String!) {
-            login(login: $login, password: $password)
+            login(login: $login, password: $password) 
           }
         `,
         variables: { login, password },

@@ -1,24 +1,32 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Toolbar, Typography, TextField, Box, Avatar, IconButton, Popper, Paper, MenuItem, CircularProgress } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../redux/authSlice';
 import { useSearchUsersQuery } from '../redux/userApiSlice';
+import { actionAboutMe } from '../redux/actions';  
 import PostCard from '../components/PostCard';
 
 const MainPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user); // Извлекаем данные пользователя
-  console.log('User data:', user);
-
+  const auth = useSelector((state) => state.auth); // Извлекаем токен из auth state
   const [searchQuery, setSearchQuery] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const inputRef = useRef(null);
 
   const { data: searchResults = [], isFetching } = useSearchUsersQuery(searchQuery, { skip: searchQuery.trim() === '' });
+
+  // Загружаем данные о пользователе, если они не загружены, но токен есть
+  useEffect(() => {
+    if (!user && auth.token) {
+      dispatch(actionAboutMe()); // Подтягиваем данные о пользователе, если они еще не загружены
+    }
+    console.log('User:', user); // Логируем данные пользователя
+  }, [user, auth.token, dispatch]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -51,6 +59,8 @@ const MainPage = () => {
     navigate(`/profile/${login}`);
     setIsMenuOpen(false); // Закрыть меню при выборе пользователя
   };
+
+  const userProfile = user?.UserFindOne; // Опциональная цепочка для безопасного доступа
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -129,11 +139,11 @@ const MainPage = () => {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {user ? (
+            {userProfile ? (
               <>
                 <Avatar
-                  alt={user.nick || user.login}
-                  src={user.avatar?.url || '/default-avatar.png'}
+                  alt={userProfile.nick || userProfile.login}
+                  src={userProfile.avatar?.url || '/default-avatar.png'}  // Проверяем наличие аватара
                   sx={{ cursor: 'pointer' }}
                   onClick={handleProfileClick}
                 />
@@ -142,11 +152,15 @@ const MainPage = () => {
                   sx={{ marginLeft: '11px', marginRight: '8px', cursor: 'pointer' }}
                   onClick={handleProfileClick}
                 >
-                  {user.nick || user.login}
+                  {userProfile.nick || userProfile.login}  {/* Отображаем ник, если он есть, иначе логин */}
                 </Typography>
               </>
             ) : (
-              <Typography variant="h6" color="error">Ошибка загрузки</Typography>
+              auth.token ? (
+                <CircularProgress size={24} />  // Показать лоадер, если данные загружаются
+              ) : (
+                <Typography variant="h6" color="error">Ошибка загрузки</Typography>
+              )
             )}
             <IconButton onClick={handleLogout} color="inherit">
               <ExitToAppIcon />
@@ -156,7 +170,7 @@ const MainPage = () => {
       </AppBar>
 
       <Box sx={{ marginTop: '20px' }}>
-        {/* Здесь отображаются посты */}
+        {/* Отображаем посты */}
         <PostCard />
       </Box>
     </Box>

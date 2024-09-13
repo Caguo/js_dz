@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { Box, Typography, Avatar, CircularProgress, AppBar, Toolbar, IconButton, Card, CardContent, CardMedia, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { Box, Typography, Avatar, CircularProgress, AppBar, Toolbar, IconButton, Card, CardContent, CardMedia, Button, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { logout } from '../redux/authSlice';
@@ -9,16 +9,26 @@ import { useFetchUserInfoQuery, useFetchUserPostsQuery, useToggleFollowMutation 
 const UserProfilePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { login } = useParams();  // Получаем логин пользователя из параметров маршрута
+  const { login } = useParams();
   const [openFollowersDialog, setOpenFollowersDialog] = useState(false);
   const [openFollowingDialog, setOpenFollowingDialog] = useState(false);
-  const [followingUsers, setFollowingUsers] = useState([]);
-  const [followersUsers, setFollowersUsers] = useState([]);
-  
-  const { data: userInfo, error: userError, isLoading: userLoading } = useFetchUserInfoQuery(login);  // Загружаем данные пользователя по логину
-  const userId = userInfo?._id;
+  const [userInfo, setUserInfo] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const userAbout = useSelector((state) => state.auth.user?.UserFindOne);
+  const currentUserId = userAbout?._id;
+
+  const { data: fetchedUserInfo, error: userError, isLoading: userLoading } = useFetchUserInfoQuery(login);
+  const userId = fetchedUserInfo?._id;
   const { data: posts, error: postsError, isLoading: postsLoading } = useFetchUserPostsQuery(userId);
   const [toggleFollow] = useToggleFollowMutation();
+
+  useEffect(() => {
+    if (fetchedUserInfo) {
+      setUserInfo(fetchedUserInfo);
+    }
+  }, [fetchedUserInfo]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -30,12 +40,10 @@ const UserProfilePage = () => {
   };
 
   const handleOpenFollowers = () => {
-    setFollowersUsers(userInfo.followers || []);
     setOpenFollowersDialog(true);
   };
 
   const handleOpenFollowing = () => {
-    setFollowingUsers(userInfo.following || []);
     setOpenFollowingDialog(true);
   };
 
@@ -45,21 +53,33 @@ const UserProfilePage = () => {
   };
 
   const handleToggleFollow = async (user, action) => {
-    if (!userId) return;
-  
-    const variables = {
-      currentUserId: userId,
-      targetUserId: user._id,
-    };
-  
+    if (!currentUserId) {
+      console.error('currentUserId is missing:', currentUserId);
+      return;
+    }
+
+    // Определяем новый список подписок
+    const updatedFollowingList = action === 'follow'
+      ? [...(userInfo.following || []), { _id: user._id, login: user.login }]
+      : (userInfo.following || []).filter(f => f._id !== user._id);
+
     try {
-      const response = await toggleFollow(variables).unwrap();
+      const response = await toggleFollow({
+        userId: currentUserId,
+        following: updatedFollowingList,
+      }).unwrap();
+
       if (response) {
-        if (action === 'follow') {
-          setFollowersUsers(prev => [...prev, user]);
-        } else {
-          setFollowersUsers(prev => prev.filter(f => f._id !== user._id));
-        }
+        // Обновляем состояние с новыми данными
+        setUserInfo(prevInfo => ({
+          ...prevInfo,
+          following: updatedFollowingList,
+          followers: action === 'follow'
+            ? [...(prevInfo.followers || []), { _id: currentUserId, login: userAbout.login }]
+            : (prevInfo.followers || []).filter(f => f._id !== currentUserId),
+        }));
+        setSnackbarMessage(action === 'follow' ? 'Вы подписались на пользователя' : 'Вы отписались от пользователя');
+        setSnackbarOpen(true);
       } else {
         console.error('Server returned null:', response);
       }
@@ -68,11 +88,22 @@ const UserProfilePage = () => {
     }
   };
 
-  useEffect(() => {
-    if (userInfo) {
-      // Дополнительная логика, если нужно
-    }
-  }, [userInfo]);
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
+
+  const isUserFollowing = (user) => {
+    if (!userInfo || !userInfo.following) return false;
+    return (userInfo.following || []).some(f => f._id === user._id);
+  };
+
+  const getFollowButtonText = (user) => {
+    return isUserFollowing(user) ? 'Вы подписаны' : 'Подписаться';
+  };
+
+  const getButtonColor = (user) => {
+    return isUserFollowing(user) ? '#ccc' : '#4caf50';
+  };
 
   if (userLoading || postsLoading) {
     return <CircularProgress />;
@@ -89,28 +120,6 @@ const UserProfilePage = () => {
   const followersCount = Array.isArray(userInfo.followers) ? userInfo.followers.length : 0;
   const followingCount = Array.isArray(userInfo.following) ? userInfo.following.length : 0;
   const postsCount = Array.isArray(posts) ? posts.length : 0;
-
-  const isUserFollowing = (user) => {
-    return (userInfo.following || []).some(f => f._id === user._id);
-  };
-
-  const isUserFollowedBy = (user) => {
-    return (userInfo.followers || []).some(f => f._id === user._id);
-  };
-
-  const getFollowButtonText = (user) => {
-    if (isUserFollowing(user) && isUserFollowedBy(user)) {
-      return 'Подписан';
-    }
-    return isUserFollowing(user) ? 'Подписан' : 'Подписаться';
-  };
-
-  const getButtonColor = (user) => {
-    if (isUserFollowing(user) && isUserFollowedBy(user)) {
-      return '#ccc'; // Цвет для подписанных пользователей
-    }
-    return isUserFollowing(user) ? '#ccc' : '#4caf50'; // Цвет для подписанных или не подписанных пользователей
-  };
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -154,21 +163,34 @@ const UserProfilePage = () => {
                 <Typography variant="body1"><strong>{followingCount}</strong></Typography>
               </Box>
             </Box>
-            <Button
-              sx={{
-                marginTop: '16px',
-                backgroundColor: getButtonColor(userInfo),
-                color: '#fff',
-                borderRadius: '4px',
-              }}
-              onClick={() => handleToggleFollow(userInfo, isUserFollowing(userInfo) ? 'unfollow' : 'follow')}
-            >
-              {getFollowButtonText(userInfo)}
-            </Button>
+            {!isUserFollowing(userInfo) ? (
+              <Button
+                sx={{
+                  marginTop: '16px',
+                  backgroundColor: '#4caf50',
+                  color: '#fff',
+                  borderRadius: '4px',
+                }}
+                onClick={() => handleToggleFollow(userInfo, 'follow')}
+              >
+                Подписаться
+              </Button>
+            ) : (
+              <Button
+                sx={{
+                  marginTop: '16px',
+                  backgroundColor: '#ccc',
+                  color: '#fff',
+                  borderRadius: '4px',
+                }}
+                disabled
+              >
+                Вы подписаны
+              </Button>
+            )}
           </Box>
         </Box>
 
-        {/* Посты */}
         <Typography variant="h6" sx={{ textAlign: 'center', marginBottom: '33px' }}>Посты пользователя</Typography>
         <Box sx={{ 
           display: 'flex', 
@@ -210,11 +232,10 @@ const UserProfilePage = () => {
           ))}
         </Box>
 
-        {/* Модальное окно для подписчиков */}
         <Dialog open={openFollowersDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
           <DialogTitle>Подписчики</DialogTitle>
           <DialogContent>
-            {followersUsers.map((follower) => (
+            {(userInfo.followers || []).map((follower) => (
               <Box key={follower._id} sx={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                 <Avatar src={follower.avatar?.url || '/default-avatar.png'} sx={{ width: 40, height: 40 }} />
                 <Box sx={{ marginLeft: '16px', flexGrow: 1 }}>
@@ -234,11 +255,10 @@ const UserProfilePage = () => {
           </DialogActions>
         </Dialog>
 
-        {/* Модальное окно для подписок */}
         <Dialog open={openFollowingDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
           <DialogTitle>Подписки</DialogTitle>
           <DialogContent>
-            {followingUsers.map((followingUser) => (
+            {(userInfo.following || []).map((followingUser) => (
               <Box key={followingUser._id} sx={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
                 <Avatar src={followingUser.avatar?.url || '/default-avatar.png'} sx={{ width: 40, height: 40 }} />
                 <Box sx={{ marginLeft: '16px', flexGrow: 1 }}>
@@ -257,6 +277,12 @@ const UserProfilePage = () => {
             <Button onClick={handleCloseDialog} color="primary">Закрыть</Button>
           </DialogActions>
         </Dialog>
+
+        <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+          <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </Box>
     </Box>
   );

@@ -46,15 +46,32 @@ export const userApiSlice = createApi({
       query: (userId) => ({
         body: JSON.stringify({
           query: `
-            query PostFind {
-              PostFind(query: "[{\\"___owner\\": \\"${userId}\\"}]") {
-                _id
-                title
-                images {
-                  url
+              query PostFind {
+                PostFind(query: "[{\\"___owner\\": \\"${userId}\\"}]") {
+                  _id
+                  title
+                  text
+                  images {
+                    url
+                  }
+                  owner {
+                    login
+                  }
+                  likes {
+                    _id
+                  }
+                  comments {
+                    text
+                    owner {
+                      login
+                      nick
+                      avatar{
+                        url
+                      }
+                    }
+                  }
                 }
               }
-            }
           `,
         }),
         method: 'POST',
@@ -92,10 +109,12 @@ export const userApiSlice = createApi({
           query: `
             mutation FollowUser($currentUserId: String!, $targetUserId: String!) {
               UserUpsert(user: {
-                _id: $currentUserId, 
-                following: [{ 
-                  _id: $targetUserId
-                }]
+                _id: $currentUserId,
+                following: [
+                  {
+                    _id: $targetUserId
+                  }
+                ]
               }) {
                 _id
                 login
@@ -114,7 +133,7 @@ export const userApiSlice = createApi({
         method: 'POST',
       }),
       transformResponse: (response) => response.data.UserUpsert,
-    }),  
+    }),
     searchUsers: builder.query({
       query: (searchQuery) => ({
         body: JSON.stringify({

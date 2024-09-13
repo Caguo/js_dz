@@ -1,31 +1,39 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const POST_QUERY = `
-  query PostFind($query: String!) {
-    PostFind(query: $query) {
+query PostFind($query: String!) {
+  PostFind(query: $query) {
+    _id
+    title
+    text
+    images {
+      url
+    }
+    likes {
       _id
-      title
+      owner {
+        _id
+        login
+      }
+    }
+    comments {
       text
-      images {
-        url
-      }
-      likes {
-        owner {
-          _id
-          login
-        }
-      }
-      comments {
-        text
-      }
       owner {
         login
+        nick
         avatar {
           url
         }
       }
     }
+    owner {
+      login
+      avatar {
+        url
+      }
+    }
   }
+}
 `;
 
 export const apiSlice = createApi({
