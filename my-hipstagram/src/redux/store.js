@@ -8,7 +8,9 @@ import { authApi } from './authApiSlice';
 import { apiSlice } from './apiSlice';
 import { userApiSlice } from './userApiSlice';
 import { userAboutApi } from './userAbout'; 
-import { commentsApi } from '../hooks/commentsApi'; // Импортируйте commentsApi
+import { commentsApi } from '../hooks/commentsApi'; 
+import subscriptionReducer from './subscriptionSlice';
+import { postsApi } from './postsApiSlice';
 
 const persistConfig = {
   key: 'root',
@@ -18,11 +20,13 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  subscriptions: subscriptionReducer, 
   [authApi.reducerPath]: authApi.reducer,
   [userApiSlice.reducerPath]: userApiSlice.reducer,
   [userAboutApi.reducerPath]: userAboutApi.reducer,
   [apiSlice.reducerPath]: apiSlice.reducer,
-  [commentsApi.reducerPath]: commentsApi.reducer, // Добавьте reducer для commentsApi
+  [commentsApi.reducerPath]: commentsApi.reducer,
+  [postsApi.reducerPath]: postsApi.reducer, 
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -35,7 +39,8 @@ const store = configureStore({
       userApiSlice.middleware,
       userAboutApi.middleware,
       authApi.middleware,
-      commentsApi.middleware // Добавьте middleware для commentsApi
+      commentsApi.middleware, // Добавьте middleware для commentsApi
+      postsApi.middleware
     ),
 });
 

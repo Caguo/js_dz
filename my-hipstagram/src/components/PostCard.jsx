@@ -1,33 +1,55 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Card, CardContent, CardMedia, CircularProgress, Avatar, IconButton, Typography } from '@mui/material';
-import { useFetchPostsQuery } from '../redux/apiSlice';
+import { useFetchPostsQuery, useFetchUserPostsQuery } from '../redux/apiSlice';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import CommentIcon from '@mui/icons-material/Comment';
 import PostModal from '../hooks/PostModal';
 import { useLikePostMutation, useUnlikePostMutation } from '../hooks/commentsApi';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { actionAboutMe } from '../redux/actions';
+import { useLocation } from 'react-router-dom';
 
-const BASE_URL = 'http://hipstagram.node.ed.asmer.org.ua/';
+const BASE_URL = 'http://hipstagram.node.ed.asmer.org.ua/'; // Убедитесь, что это правильный базовый URL
 
 const PostCard = () => {
+  const dispatch = useDispatch();
   const [page, setPage] = useState(1);
   const [allPosts, setAllPosts] = useState([]);
   const [hasMore, setHasMore] = useState(true);
   const [likedPosts, setLikedPosts] = useState({});
   const [selectedPost, setSelectedPost] = useState(null);
   const loadMoreRef = useRef(null);
+  const location = useLocation();
 
   const [likePost] = useLikePostMutation();
   const [unlikePost] = useUnlikePostMutation();
 
   const authUser = useSelector((state) => state.auth.user?.UserFindOne || {});
   const userId = authUser?._id;
+  
+  useEffect(() => {
+    if (!authUser) {
+      dispatch(actionAboutMe());
+    }
+  }, [authUser, dispatch]);
 
-  const { data: posts = [], error, isLoading, isFetching } = useFetchPostsQuery({
-    skip: (page - 1) * 20,
-    limit: 20
-  });
+  const userSubscriptions = (authUser?.following) || [];
+
+  const isOnMainPage = location.pathname === '/main';
+  const shouldFetchUserPosts = isOnMainPage && userSubscriptions.length > 0;
+
+  const fetchUserPostsQuery = useFetchUserPostsQuery(
+    { userId, skip: (page - 1) * 20, limit: 20 },
+    { skip: !shouldFetchUserPosts }
+  );
+
+  const fetchPostsQuery = useFetchPostsQuery(
+    { skip: (page - 1) * 20, limit: 20 },
+    { skip: isOnMainPage && shouldFetchUserPosts }
+  );
+
+  const { data: posts = [], error, isLoading, isFetching } = isOnMainPage ? (shouldFetchUserPosts ? fetchUserPostsQuery : fetchPostsQuery) : fetchPostsQuery;
 
   useEffect(() => {
     if (posts.length > 0) {
@@ -61,26 +83,30 @@ const PostCard = () => {
   }, [isFetching, hasMore]);
 
   useEffect(() => {
-    const currentRef = loadMoreRef.current;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          loadMorePosts();
-        }
-      },
-      { threshold: 1.0 }
-    );
+    const handle = () => {
+      const currentRef = loadMoreRef.current;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && !isFetching && hasMore) {
+            loadMorePosts();
+          }
+        },
+        { threshold: 0.1 }
+      );
 
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
-
-    return () => {
       if (currentRef) {
-        observer.unobserve(currentRef);
+        observer.observe(currentRef);
       }
+
+      return () => {
+        if (currentRef) {
+          observer.unobserve(currentRef);
+        }
+      };
     };
-  }, [loadMorePosts]);
+
+    requestAnimationFrame(handle);
+  }, [loadMorePosts, isFetching, hasMore]);
 
   const handleLikeToggle = useCallback(async (postId) => {
     if (!userId) {
@@ -170,7 +196,8 @@ const PostCard = () => {
     <Box sx={{ padding: 2 }}>
       {allPosts.map((post) => {
         const imageUrl = post.images?.[0]?.url ? `${BASE_URL}${post.images[0].url}` : null;
-        const author = post.owner?.login || 'Неизвестный';
+        const author = post.owner?.nick || post.owner?.login || 'Неизвестный';
+        const authorAvatar = post.owner?.avatar?.url ? `${BASE_URL}${post.owner.avatar.url}` : null;
         const likeCount = post.likes?.length || 0;
         const commentCount = post.comments?.length || 0;
         const userHasLiked = likedPosts[post._id] || false;
@@ -189,43 +216,67 @@ const PostCard = () => {
               }}
             >
               <CardContent sx={{ display: 'flex', alignItems: 'center', padding: 2 }}>
-                <Avatar sx={{ marginRight: 2, bgcolor: 'secondary.main' }}>{author.charAt(0)}</Avatar>
-                <Typography variant="body1">{author}</Typography>
-              </CardContent>
-              {imageUrl ? (
-                <CardMedia
-                  component="img"
-                  image={imageUrl}
-                  alt="Post image"
-                  sx={{
-                    width: '100%',
-                    height: 400,
-                    objectFit: 'contain',
-                    borderRadius: 1,
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => handleOpenPost(post)}
-                />
-              ) : (
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: 400,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#f0f0f0',
-                    color: '#888'
-                  }}
+                <Avatar
+                  src={authorAvatar}
+                  sx={{ marginRight: 2, width: 56, height: 56 }}
                 >
-                  <Typography variant="h6">Изображение отсутствует</Typography>
-                </Box>
-              )}
-              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1, padding: 2 }}>
+                  {!authorAvatar && author.charAt(0)}
+                </Avatar>
+                <Typography sx={{ fontWeight:'bold'}} variant="body1">{author}</Typography>
+              </CardContent>
+              <Box
+                sx={{
+                  position: 'relative',
+                  width: '100%',
+                  height: 400,
+                  cursor: 'pointer', // Курсор только для изображения
+                }}
+                onClick={() => handleOpenPost(post)} // Обработчик клика для открытия модального окна
+              >
+                {imageUrl ? (
+                  <CardMedia
+                    component="img"
+                    image={imageUrl}
+                    alt="Post image"
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      borderRadius: 1
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#f0f0f0',
+                      color: '#888'
+                    }}
+                  >
+                    <Typography variant="h6">Изображение отсутствует</Typography>
+                  </Box>
+                )}
+              </Box>
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  padding: 2,
+                  cursor: 'default' // Убирает курсор для остальных частей карточки
+                }}
+              >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <IconButton
                     size="small"
-                    onClick={() => handleLikeToggle(post._id)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Останавливает всплытие события клика
+                      handleLikeToggle(post._id);
+                    }}
                     sx={{
                       color: userHasLiked ? 'error.main' : 'text.disabled',
                       transition: 'color 0.3s ease',
@@ -239,7 +290,13 @@ const PostCard = () => {
                   <Typography variant="body2">{likeCount}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <IconButton size="small" sx={{ color: 'text.disabled' }}>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Останавливает всплытие события клика
+                      handleOpenPost(post);
+                    }}
+                  >
                     <CommentIcon />
                   </IconButton>
                   <Typography variant="body2">{commentCount}</Typography>
@@ -250,7 +307,7 @@ const PostCard = () => {
         );
       })}
 
-      <Box ref={loadMoreRef} sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+      <Box ref={loadMoreRef} sx={{ display: 'flex', justifyContent: 'center', marginTop: 4, height: '5px' }}>
         {isFetching && hasMore && <CircularProgress />}
       </Box>
 

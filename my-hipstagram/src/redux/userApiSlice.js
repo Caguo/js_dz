@@ -56,6 +56,10 @@ export const userApiSlice = createApi({
                   }
                   owner {
                     login
+                    nick
+                    avatar{
+                      url
+                    }
                   }
                   likes {
                     _id
@@ -104,30 +108,26 @@ export const userApiSlice = createApi({
       transformResponse: (response) => response.data.UserUpsert,
     }),
     toggleFollow: builder.mutation({
-      query: ({ currentUserId, targetUserId }) => ({
+      query: ({ currentUserId, following }) => ({
         body: JSON.stringify({
           query: `
-            mutation FollowUser($currentUserId: String!, $targetUserId: String!) {
-              UserUpsert(user: {
-                _id: $currentUserId,
-                following: [
-                  {
-                    _id: $targetUserId
-                  }
-                ]
-              }) {
-                _id
-                login
-                following {
+              mutation FollowUser($currentUserId: String!, $following: [UserInput!]!) {
+                UserUpsert(user: {
+                  _id: $currentUserId,
+                  following: $following
+                }) {
                   _id
                   login
+                  following {
+                    _id
+                    login
+                  }
                 }
               }
-            }
           `,
           variables: {
             currentUserId,
-            targetUserId,
+            following,
           },
         }),
         method: 'POST',
@@ -135,23 +135,25 @@ export const userApiSlice = createApi({
       transformResponse: (response) => response.data.UserUpsert,
     }),
     searchUsers: builder.query({
-      query: (searchQuery) => ({
-        body: JSON.stringify({
-          query: `
-            query UserFind {
-              UserFind(query: "[{\\"$or\\":[{\\"login\\":{\\"$regex\\":\\"${searchQuery}\\"}}, {\\"nick\\":{\\"$regex\\":\\"${searchQuery}\\"}}]}]") {
-                _id
-                login
-                nick
-                avatar {
-                  url
-                }
+      query: ({ searchQuery, searchField }) => {
+        const query = `
+          query UserFind {
+            UserFind(query: "[{ \\"${searchField}\\": {\\"$regex\\": \\"${searchQuery}\\", \\"$options\\": \\"i\\"} } ]") {
+              _id
+              login
+              nick
+              avatar {
+                url
               }
             }
-          `,
-        }),
-        method: 'POST',
-      }),
+          }
+        `;
+        
+        return {
+          body: JSON.stringify({ query }),
+          method: 'POST',
+        };
+      },
       transformResponse: (response) => response.data.UserFind,
     }),
   }),

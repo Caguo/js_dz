@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+// Общий запрос для получения постов
 const POST_QUERY = `
 query PostFind($query: String!) {
   PostFind(query: $query) {
@@ -28,8 +29,43 @@ query PostFind($query: String!) {
     }
     owner {
       login
+      nick
       avatar {
         url
+      }
+    }
+  }
+}
+`;
+
+// Запрос для получения постов конкретного пользователя
+const USER_POSTS_QUERY = `
+query PostFind($query: String!) {
+  PostFind(query: $query) {
+    _id
+    title
+    text
+    images {
+      url
+    }
+    owner {
+      nick
+      login
+      avatar{
+        url
+      }
+    }
+    likes {
+      _id
+    }
+    comments {
+      text
+      owner {
+        login
+        nick
+        avatar {
+          url
+        }
       }
     }
   }
@@ -55,23 +91,17 @@ export const apiSlice = createApi({
         const queryArray = [
           {
             $and: [
-              {
-                images: { $exists: true } 
-              },
-              {
-                images: { $not: { $size: 0 } } 
-              }
+              { images: { $exists: true } },
+              { images: { $not: { $size: 0 } } }
             ]
           },
           {
             sort: [{ _id: -1 }],
             skip: [skip],
-            limit: [limit] 
+            limit: [limit]
           },
         ];
-
         const queryString = JSON.stringify(queryArray);
-
         return {
           body: JSON.stringify({
             query: POST_QUERY,
@@ -80,11 +110,34 @@ export const apiSlice = createApi({
           method: 'POST',
         };
       },
-      transformResponse: (response) => {
-        return response?.data?.PostFind || [];
+      transformResponse: (response) => response?.data?.PostFind || [],
+    }),
+    fetchUserPosts: builder.query({
+      query: ({ userId, skip, limit }) => {
+        const queryArray = [
+          {
+            $and: [
+              { ___owner: userId }
+            ]
+          },
+          {
+            sort: [{ _id: -1 }],
+            skip: [skip],
+            limit: [limit]
+          },
+        ];
+        const queryString = JSON.stringify(queryArray);
+        return {
+          body: JSON.stringify({
+            query: USER_POSTS_QUERY,
+            variables: { query: queryString }
+          }),
+          method: 'POST',
+        };
       },
+      transformResponse: (response) => response?.data?.PostFind || [],
     }),
   }),
 });
 
-export const { useFetchPostsQuery } = apiSlice;
+export const { useFetchPostsQuery, useFetchUserPostsQuery } = apiSlice;

@@ -6,7 +6,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { useSelector } from 'react-redux';
-import { useAddCommentMutation } from '../hooks/commentsApi';
+import { useAddCommentMutation } from './commentsApi';
 
 const BASE_URL = 'http://hipstagram.node.ed.asmer.org.ua/';
 
@@ -85,10 +85,39 @@ const PostModal = ({ post, onClose, onLikeToggle, userHasLiked, likeCount, onAdd
     <Dialog open={Boolean(post)} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar sx={{ marginRight: 2, bgcolor: 'secondary.main' }}>
-            {post.owner?.login?.charAt(0) || 'U'}
+          <Avatar
+            sx={{
+              marginRight: 2,
+              bgcolor: 'secondary.main',
+              width: 60, // Увеличение размера аватара
+              height: 60, // Увеличение размера аватара
+              fontSize: '2.5rem' // Увеличение размера текста внутри аватара, если используется
+            }}
+          >
+            {post.owner?.avatar?.url ? (
+              <img 
+                src={`${BASE_URL}${post.owner.avatar.url}`} 
+                alt="User Avatar" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover', 
+                  borderRadius: '50%' 
+                }} 
+              />
+            ) : (
+              post.owner?.login?.charAt(0)
+            )}
           </Avatar>
-          <Typography variant="h6">{post.owner?.login || 'Неизвестный'}</Typography>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontSize: '1.5rem', // Увеличение размера шрифта логина
+              fontWeight: 'bold'
+            }}
+          >
+            {post.owner?.nick || post.owner?.login}
+          </Typography>
         </Box>
       </DialogTitle>
       <DialogContent>
@@ -196,7 +225,13 @@ const PostModal = ({ post, onClose, onLikeToggle, userHasLiked, likeCount, onAdd
               {comments.length > 0 ? (
                 comments.map((comment, index) => (
                   <Box key={index} sx={{ display: 'flex', alignItems: 'center', marginBottom: 1 }}>
-                    <Avatar src={`${BASE_URL}${comment.owner?.avatar?.url}`} sx={{ marginRight: 1 }} />
+                    {comment.owner?.avatar?.url ? (
+                      <Avatar src={`${BASE_URL}${comment.owner.avatar.url}`} sx={{ marginRight: 1 }} />
+                    ) : (
+                      <Avatar sx={{ marginRight: 1 }}>
+                        {comment.owner?.login?.charAt(0) || 'U'}
+                      </Avatar>
+                    )}
                     <Box>
                       <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                         {comment.owner?.nick || comment.owner?.login}

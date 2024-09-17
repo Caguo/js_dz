@@ -49,9 +49,6 @@ export const userAboutApi = createApi({
               _id
               login
               nick
-              avatar {
-                url
-              }
             }
           }
         `,

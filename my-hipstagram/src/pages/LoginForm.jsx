@@ -1,14 +1,15 @@
-// LoginForm.js
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { TextField, Button, Container, Typography, Box } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, Snackbar, Alert } from '@mui/material'; // Импортируйте Snackbar и Alert
 import { actionFullLogin, actionAboutMe } from '../redux/actions';
 
 const LoginForm = () => {
   const [loginValue, setLoginValue] = useState('');
   const [passwordValue, setPasswordValue] = useState('');
   const [formError, setFormError] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false); // Для управления отображением Snackbar
+  const [errorMessage, setErrorMessage] = useState(''); // Сообщение об ошибке
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -16,15 +17,26 @@ const LoginForm = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setFormError(false);
+    setOpenSnackbar(false); // Закрываем Snackbar при новой попытке
 
     try {
-      await dispatch(actionFullLogin(loginValue, passwordValue));
+      const result = await dispatch(actionFullLogin(loginValue, passwordValue));
+      if (result.error) {
+        setErrorMessage(result.error);
+        setOpenSnackbar(true);
+        return;
+      }
+
       await dispatch(actionAboutMe()); // Запрашиваем данные о пользователе после входа
       navigate('/main');
     } catch (err) {
-      console.error('Login error:', err);
-      setFormError(true);
+      setErrorMessage('Не удалось авторизоваться. Попробуйте еще раз.');
+      setOpenSnackbar(true);
     }
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
   };
 
   return (
@@ -66,6 +78,16 @@ const LoginForm = () => {
             </Typography>
           </Box>
         </form>
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          message={errorMessage}
+        >
+          <Alert onClose={handleCloseSnackbar} severity="error">
+            {errorMessage}
+          </Alert>
+        </Snackbar>
       </Box>
     </Container>
   );
